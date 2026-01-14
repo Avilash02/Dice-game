@@ -1,30 +1,621 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
-  <head>
+<head>
     <meta charset="utf-8">
-    <title>Dicee</title>
-    <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css?family=Indie+Flower|Lobster" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dice Duel - Roll & Win</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Fredoka+One&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6c63ff;
+            --secondary: #ff6584;
+            --accent: #36d1dc;
+            --dark: #2a2a3c;
+            --light: #f8f9fa;
+            --success: #4CAF50;
+            --warning: #FF9800;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            --radius: 20px;
+            --transition: all 0.3s ease;
+        }
 
-  </head>
-  <body>
-    <header id="refreshButton">Click me to Refresh the page</header>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: var(--light);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            width: 100%;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .logo i {
+            font-size: 3rem;
+            color: var(--accent);
+        }
+
+        .logo h1 {
+            font-family: 'Fredoka One', cursive;
+            font-size: 3.5rem;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 5px 15px rgba(108, 99, 255, 0.2);
+        }
+
+        .tagline {
+            font-size: 1.2rem;
+            color: #aaa;
+            max-width: 600px;
+            margin: 0 auto 30px;
+            line-height: 1.6;
+        }
+
+        .refresh-btn {
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            color: white;
+            border: none;
+            padding: 18px 40px;
+            font-size: 1.3rem;
+            font-weight: 600;
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 0 auto 40px;
+            width: 100%;
+            max-width: 350px;
+        }
+
+        .refresh-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(108, 99, 255, 0.3);
+        }
+
+        .refresh-btn:active {
+            transform: translateY(-2px);
+        }
+
+        .game-area {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 50px;
+            margin-bottom: 50px;
+        }
+
+        .player-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            border-radius: var(--radius);
+            padding: 30px;
+            width: 100%;
+            max-width: 350px;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: var(--transition);
+            text-align: center;
+        }
+
+        .player-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--primary);
+        }
+
+        .player-card.active {
+            border-color: var(--accent);
+            box-shadow: 0 15px 30px rgba(54, 209, 220, 0.2);
+        }
+
+        .player-card.winner {
+            border-color: var(--success);
+            box-shadow: 0 15px 30px rgba(76, 175, 80, 0.2);
+        }
+
+        .player-name {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .dice-container {
+            height: 220px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 25px 0;
+        }
+
+        .dice {
+            width: 180px;
+            height: 180px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 1s ease;
+            cursor: pointer;
+        }
+
+        .dice.rolling {
+            animation: roll 1.5s ease-out;
+        }
+
+        @keyframes roll {
+            0% { transform: rotateX(0) rotateY(0); }
+            25% { transform: rotateX(180deg) rotateY(180deg); }
+            50% { transform: rotateX(360deg) rotateY(360deg); }
+            75% { transform: rotateX(540deg) rotateY(540deg); }
+            100% { transform: rotateX(720deg) rotateY(720deg); }
+        }
+
+        .dice-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: white;
+            border-radius: 20px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            padding: 15px;
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.1), 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .dot {
+            background-color: var(--dark);
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            justify-self: center;
+            align-self: center;
+        }
+
+        /* Dice face positions */
+        .face-1 .dot { grid-area: 2 / 2; }
+        .face-2 .dot:nth-child(1) { grid-area: 1 / 1; }
+        .face-2 .dot:nth-child(2) { grid-area: 3 / 3; }
+        .face-3 .dot:nth-child(1) { grid-area: 1 / 1; }
+        .face-3 .dot:nth-child(2) { grid-area: 2 / 2; }
+        .face-3 .dot:nth-child(3) { grid-area: 3 / 3; }
+        .face-4 .dot:nth-child(1) { grid-area: 1 / 1; }
+        .face-4 .dot:nth-child(2) { grid-area: 1 / 3; }
+        .face-4 .dot:nth-child(3) { grid-area: 3 / 1; }
+        .face-4 .dot:nth-child(4) { grid-area: 3 / 3; }
+        .face-5 .dot:nth-child(1) { grid-area: 1 / 1; }
+        .face-5 .dot:nth-child(2) { grid-area: 1 / 3; }
+        .face-5 .dot:nth-child(3) { grid-area: 2 / 2; }
+        .face-5 .dot:nth-child(4) { grid-area: 3 / 1; }
+        .face-5 .dot:nth-child(5) { grid-area: 3 / 3; }
+        .face-6 .dot:nth-child(1) { grid-area: 1 / 1; }
+        .face-6 .dot:nth-child(2) { grid-area: 1 / 2; }
+        .face-6 .dot:nth-child(3) { grid-area: 1 / 3; }
+        .face-6 .dot:nth-child(4) { grid-area: 3 / 1; }
+        .face-6 .dot:nth-child(5) { grid-area: 3 / 2; }
+        .face-6 .dot:nth-child(6) { grid-area: 3 / 3; }
+
+        /* 3D Dice faces */
+        .face-1 { transform: translateZ(90px); }
+        .face-2 { transform: rotateY(90deg) translateZ(90px); }
+        .face-3 { transform: rotateX(90deg) translateZ(90px); }
+        .face-4 { transform: rotateX(-90deg) translateZ(90px); }
+        .face-5 { transform: rotateY(-90deg) translateZ(90px); }
+        .face-6 { transform: rotateY(180deg) translateZ(90px); }
+
+        .score {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-top: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px 20px;
+            border-radius: 50px;
+            display: inline-block;
+        }
+
+        .result-area {
+            text-align: center;
+            margin-top: 30px;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: var(--radius);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto 50px;
+        }
+
+        .result-text {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .player1-win { color: var(--primary); }
+        .player2-win { color: var(--secondary); }
+        .draw { color: var(--warning); }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 15px;
+            padding: 20px;
+            min-width: 150px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: #aaa;
+            margin-top: 5px;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            width: 100%;
+        }
+
+        .social-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 15px 35px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: var(--transition);
+            box-shadow: var(--shadow);
+        }
+
+        .social-link:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(255, 101, 132, 0.3);
+        }
+
+        .copyright {
+            margin-top: 30px;
+            color: #777;
+            font-size: 0.9rem;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .logo h1 { font-size: 2.5rem; }
+            .game-area { gap: 30px; }
+            .player-card { max-width: 300px; padding: 20px; }
+            .dice { width: 150px; height: 150px; }
+            .result-text { font-size: 2.2rem; }
+            .refresh-btn { padding: 15px 30px; font-size: 1.1rem; }
+        }
+
+        @media (max-width: 600px) {
+            .game-area { flex-direction: column; align-items: center; }
+            .logo h1 { font-size: 2rem; }
+            .logo i { font-size: 2.5rem; }
+            .result-text { font-size: 1.8rem; }
+            .dice { width: 130px; height: 130px; }
+        }
+    </style>
+</head>
+<body>
     <div class="container">
-      <h1>Refresh Me</h1>
-  
-      <div class="dice">
-        <p>Player - 1</p>
-        <img class="img1" src="images/dice6.png">
-      </div>
+        <header>
+            <div class="logo">
+                <i class="fas fa-dice"></i>
+                <h1>Dice Duel</h1>
+            </div>
+            <p class="tagline">Two players, one roll. Who will be the champion? Test your luck in this exciting dice game!</p>
+            
+            <button id="refreshButton" class="refresh-btn">
+                <i class="fas fa-redo-alt"></i> Roll the Dice
+            </button>
+        </header>
 
-      <div class="dice">
-        <p>Player - 2</p>
-        <img class="img2" src="images/dice6.png">
-      </div>
+        <main>
+            <div class="game-area">
+                <div class="player-card" id="player1">
+                    <div class="player-name">
+                        <i class="fas fa-user"></i> Player 1
+                    </div>
+                    <div class="dice-container">
+                        <div class="dice" id="dice1">
+                            <!-- 3D Dice faces will be generated by JavaScript -->
+                        </div>
+                    </div>
+                    <div class="score">Roll: <span id="score1">0</span></div>
+                </div>
+
+                <div class="vs-text">
+                    <!-- VS will be shown in result area -->
+                </div>
+
+                <div class="player-card" id="player2">
+                    <div class="player-name">
+                        <i class="fas fa-user"></i> Player 2
+                    </div>
+                    <div class="dice-container">
+                        <div class="dice" id="dice2">
+                            <!-- 3D Dice faces will be generated by JavaScript -->
+                        </div>
+                    </div>
+                    <div class="score">Roll: <span id="score2">0</span></div>
+                </div>
+            </div>
+
+            <div class="result-area">
+                <div class="result-text" id="resultText">
+                    <i class="fas fa-gamepad"></i> Click "Roll the Dice" to start!
+                </div>
+                
+                <div class="stats">
+                    <div class="stat-box">
+                        <div class="stat-value" id="totalGames">0</div>
+                        <div class="stat-label">Total Games</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="player1Wins">0</div>
+                        <div class="stat-label">Player 1 Wins</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="player2Wins">0</div>
+                        <div class="stat-label">Player 2 Wins</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="draws">0</div>
+                        <div class="stat-label">Draws</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <a href="https://github.com/Avilash02" class="social-link" target="_blank">
+                <i class="fab fa-github"></i> Visit My GitHub
+            </a>
+            <p class="copyright">
+                &copy; 2023 Dice Duel Game. Designed with <i class="fas fa-heart" style="color:#ff6584;"></i> by Avilash.
+            </p>
+        </footer>
     </div>
-    <script src="index.js" charset="utf-8"></script>
-  </body>
-  <footer>
-      <a  href="https://github.com/Avilash02">Click me -></a>
-  </footer>
+
+    <script>
+        // Game state variables
+        let totalGames = 0;
+        let player1Wins = 0;
+        let player2Wins = 0;
+        let draws = 0;
+        
+        // DOM elements
+        const refreshButton = document.getElementById('refreshButton');
+        const dice1Element = document.getElementById('dice1');
+        const dice2Element = document.getElementById('dice2');
+        const score1Element = document.getElementById('score1');
+        const score2Element = document.getElementById('score2');
+        const resultTextElement = document.getElementById('resultText');
+        const player1Card = document.getElementById('player1');
+        const player2Card = document.getElementById('player2');
+        
+        // Stats elements
+        const totalGamesElement = document.getElementById('totalGames');
+        const player1WinsElement = document.getElementById('player1Wins');
+        const player2WinsElement = document.getElementById('player2Wins');
+        const drawsElement = document.getElementById('draws');
+        
+        // Initialize 3D dice faces
+        function createDiceFaces(diceElement) {
+            // Clear any existing faces
+            diceElement.innerHTML = '';
+            
+            // Create 6 faces for the dice
+            for (let i = 1; i <= 6; i++) {
+                const face = document.createElement('div');
+                face.className = `dice-face face-${i}`;
+                
+                // Add dots based on face number
+                for (let j = 0; j < i; j++) {
+                    const dot = document.createElement('div');
+                    dot.className = 'dot';
+                    face.appendChild(dot);
+                }
+                
+                diceElement.appendChild(face);
+            }
+        }
+        
+        // Initialize dice
+        createDiceFaces(dice1Element);
+        createDiceFaces(dice2Element);
+        
+        // Update stats display
+        function updateStats() {
+            totalGamesElement.textContent = totalGames;
+            player1WinsElement.textContent = player1Wins;
+            player2WinsElement.textContent = player2Wins;
+            drawsElement.textContent = draws;
+        }
+        
+        // Roll the dice
+        function rollDice() {
+            // Reset player card styles
+            player1Card.classList.remove('winner', 'active');
+            player2Card.classList.remove('winner', 'active');
+            
+            // Add rolling animation
+            dice1Element.classList.add('rolling');
+            dice2Element.classList.add('rolling');
+            
+            // Generate random numbers
+            const randomNumber1 = Math.floor(Math.random() * 6) + 1;
+            const randomNumber2 = Math.floor(Math.random() * 6) + 1;
+            
+            // Update dice display after animation
+            setTimeout(() => {
+                // Remove rolling animation
+                dice1Element.classList.remove('rolling');
+                dice2Element.classList.remove('rolling');
+                
+                // Set dice rotation to show correct face
+                const rotations = [
+                    'rotateX(0) rotateY(0)',
+                    'rotateY(-90deg)',
+                    'rotateX(-90deg)',
+                    'rotateX(90deg)',
+                    'rotateY(90deg)',
+                    'rotateY(180deg)'
+                ];
+                
+                dice1Element.style.transform = rotations[randomNumber1 - 1];
+                dice2Element.style.transform = rotations[randomNumber2 - 1];
+                
+                // Update scores
+                score1Element.textContent = randomNumber1;
+                score2Element.textContent = randomNumber2;
+                
+                // Determine winner
+                determineWinner(randomNumber1, randomNumber2);
+                
+                // Update stats
+                updateStats();
+            }, 1500);
+        }
+        
+        // Determine winner and update UI
+        function determineWinner(num1, num2) {
+            totalGames++;
+            
+            let resultHTML = '';
+            let resultClass = '';
+            
+            if (num1 > num2) {
+                // Player 1 wins
+                player1Wins++;
+                resultHTML = `<i class="fas fa-trophy" style="color:var(--primary);"></i> Player 1 Wins!`;
+                resultClass = 'player1-win';
+                
+                // Update player cards
+                player1Card.classList.add('winner');
+                player2Card.classList.add('active');
+            } else if (num2 > num1) {
+                // Player 2 wins
+                player2Wins++;
+                resultHTML = `<i class="fas fa-trophy" style="color:var(--secondary);"></i> Player 2 Wins!`;
+                resultClass = 'player2-win';
+                
+                // Update player cards
+                player2Card.classList.add('winner');
+                player1Card.classList.add('active');
+            } else {
+                // Draw
+                draws++;
+                resultHTML = `<i class="fas fa-handshake" style="color:var(--warning);"></i> It's a Draw!`;
+                resultClass = 'draw';
+                
+                // Update player cards
+                player1Card.classList.add('active');
+                player2Card.classList.add('active');
+            }
+            
+            // Update result text
+            resultTextElement.innerHTML = resultHTML;
+            resultTextElement.className = `result-text ${resultClass}`;
+        }
+        
+        // Event listener for the roll button
+        refreshButton.addEventListener('click', rollDice);
+        
+        // Initialize stats display
+        updateStats();
+        
+        // Add some interactivity to dice
+        dice1Element.addEventListener('click', () => {
+            // Highlight player 1 card
+            player1Card.classList.add('active');
+            setTimeout(() => player1Card.classList.remove('active'), 500);
+        });
+        
+        dice2Element.addEventListener('click', () => {
+            // Highlight player 2 card
+            player2Card.classList.add('active');
+            setTimeout(() => player2Card.classList.remove('active'), 500);
+        });
+        
+        // Add keyboard support
+        document.addEventListener('keydown', (event) => {
+            if (event.code === 'Space' || event.code === 'Enter') {
+                event.preventDefault();
+                rollDice();
+            }
+        });
+        
+        // Add a welcome message with initial roll after page load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                rollDice();
+            }, 500);
+        });
+    </script>
+</body>
 </html>
